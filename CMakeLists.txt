@@ -20,7 +20,7 @@ src/Socket.cpp
 src/InetAddress.cpp
 src/ThreadPool.cpp 
 src/util.cpp
-)
+src/Http_request.cpp)
 
 
 target_link_libraries(server -pthread)

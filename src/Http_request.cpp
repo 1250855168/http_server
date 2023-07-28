@@ -1,4 +1,4 @@
-#pragma once
+
 #include "Http_request.h"
 
 void send_error(int cfd, int status, char *title, char *text) {
@@ -40,14 +40,15 @@ void http_request(const char *request, int cfd) {
   // 如果没有指定访问的资源, 默认显示资源目录中的内容
   if (strcmp(path, "/") == 0) {
     // file的值, 资源目录的当前位置
-    file = "./";
+    file = (char *)"./";
   }
 
   // 获取文件属性
   struct stat st;
   int ret = stat(file, &st);
   if (ret == -1) {
-    send_error(cfd, 404, "Not Found", "NO such file or direntry");
+    send_error(cfd, 404, (char *)"Not Found",
+               (char *)"NO such file or direntry");
     return;
   }
 
@@ -149,7 +150,8 @@ void send_file(int cfd, const char *filename) {
   // 打开文件
   int fd = open(filename, O_RDONLY);
   if (fd == -1) {
-    send_error(cfd, 404, "Not Found", "NO such file or direntry");
+    send_error(cfd, 404, (char *)"Not Found",
+               (char *)"NO such file or direntry");
     exit(1);
   }
 
