@@ -6,6 +6,7 @@
  ******************************/
 #pragma once
 #include <map>
+#include <memory>
 #include <mutex>
 class EventLoop;
 class Socket;
@@ -17,7 +18,7 @@ private:
   static Server *instance;
   EventLoop *loop;
   Acceptor *acceptor;
-  std::map<int, Connection *> connections;
+  std::map<int, std::shared_ptr<Connection>> connections;
   Server(EventLoop *);
   ~Server();
   static std::mutex mutex;

@@ -10,11 +10,14 @@
 #include "Socket.h"
 #include "util.h"
 #include <arpa/inet.h>
+#include <cstdio>
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <iostream>
+#include <ostream>
+#include <string>
 
 #include "Http_request.h"
 
@@ -41,68 +44,65 @@ void Connection::setDeleteConnectionCallback(std::function<void(int)> _cb) {
 }
 
 void Connection::echo(int sockfd) {
-
-  unsigned char ch;
-  unsigned char cmd[512];
-  unsigned char raw_cmd[4096]; // 转义后的命令
-  int i, j;
-
-  char buf[4096]; // 这个buf大小无所谓
-
+  char buf[1024]; // 这个buf大小无所谓
   while (
       true) { // 由于使用非阻塞IO，读取客户端buffer，一次读取buf大小数据，直到全部读取完毕
     bzero(&buf, sizeof(buf));
-
-    // ssize_t bytes_read = read(sockfd, buf, sizeof(buf));
-
-    ssize_t bytes_read = get_line(sockfd, (char *)buf, sizeof(buf));
-
+    ssize_t bytes_read = read(sockfd, buf, sizeof(buf));
     if (bytes_read > 0) {
-      // 判断get请求
-      if (strncasecmp("get", (char *)buf, 3) ==
-          0) { // 请求行: get /hello.c http/1.1
-        // 处理http请求
-        http_request((const char *)buf, sockfd);
-
-        // 关闭套接字, sockfd从epoll上del
-        deleteConnectionCallback(sockfd);
-      }
-      break;
+      readBuffer->append(buf, bytes_read);
     } else if (bytes_read == -1 && errno == EINTR) { // 客户端正常中断、继续读取
       printf("continue reading\n");
       continue;
     } else if (bytes_read == -1 &&
-               ((errno == EAGAIN) || (errno == EWOULDBLOCK))) {
-      // 非阻塞IO，这个条件表示数据全部读取完毕
-      // printf("message from client fd %d: %s\n", sockfd, readBuffer->c_str());
-
+               ((errno == EAGAIN) ||
+                (errno ==
+                 EWOULDBLOCK))) { // 非阻塞IO，这个条件表示数据全部读取完毕
+      printf("message from client fd %d: %s\n", sockfd, readBuffer->c_str());
+      // errif(write(sockfd, readBuffer->c_str(), readBuffer->size()) == -1,
+      // "socket write error");
+      send(sockfd);
       readBuffer->clear();
       break;
     } else if (bytes_read == 0) { // EOF，客户端断开连接
       printf("EOF, client fd %d disconnected\n", sockfd);
-      deleteConnectionCallback(sockfd); // 多线程会有bug
+      deleteConnectionCallback(sockfd);
       break;
-    } else {
-      printf("Connection reset by peer\n");
-      deleteConnectionCallback(sockfd); // 会有bug，注释后单线程无bug
-      break;
+    } else if (bytes_read == -1) {
+      // 读取数据时出现了错误
+      std::error_code ec = std::error_code(errno, std::system_category());
+      if (ec == std::errc::bad_file_descriptor) {
+           break;
+      } else {
+        std::cerr << "Error reading data: " << ec.message() << std::endl;
+      }
     }
   }
 }
 
-// void Connection::send(int sockfd) {
-//   char buf[readBuffer->size()];
-//   strcpy(buf, readBuffer->c_str());
-//   int data_size = readBuffer->size();
-//   int data_left = data_size;
-//   while (data_left > 0) {
+void Connection::send(int sockfd) {
+  std::string s1;
 
-//     // 需要对发送的东西进行解析
+  // 找到第一个 '\n' 字符
+  const char *line_end = strchr(readBuffer->c_str(), '\n');
 
-//     ssize_t bytes_write = write(sockfd, buf + data_size - data_left,
-//     data_left); if (bytes_write == -1 && errno == EAGAIN) {
-//       break;
-//     }
-//     data_left -= bytes_write;
-//   }
-// }
+  // 如果找到了 '\n' 字符
+  if (line_end != nullptr) {
+    // 计算行的长度
+    size_t line_len = line_end - readBuffer->c_str();
+
+    // 复制行到 s1 中
+    char line[line_len + 1];
+    strncpy(line, readBuffer->c_str(), line_len);
+    line[line_len] = '\0';
+    s1 = line;
+  }
+
+  if (s1.find("GET") != std::string::npos) { // 请求行: get
+    // http/1.1 处理http请求
+    http_request(s1.c_str(), sockfd);
+
+    // 关闭套接字, sockfd从epoll上del
+    deleteConnectionCallback(sockfd);
+  }
+}
