@@ -9,8 +9,9 @@
 #include "Connection.h"
 #include "Socket.h"
 #include <functional>
-#include <unistd.h>
 #include <memory>
+#include <unistd.h>
+
 
 std::mutex Server::mutex;
 Server *Server::instance = nullptr;
@@ -26,7 +27,7 @@ Server::~Server() { delete acceptor; }
 
 void Server::newConnection(Socket *sock) {
   if (sock->getFd() != -1) {
-    //Connection *conn = new Connection(loop, sock);
+    // Connection *conn = new Connection(loop, sock);
     std::shared_ptr<Connection> conn = std::make_shared<Connection>(loop, sock);
     std::function<void(int)> cb =
         std::bind(&Server::deleteConnection, this, std::placeholders::_1);
