@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.0.0)
+
+project(ftp)
+
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(./include)
+
+add_executable(server server.cpp 
+src/Acceptor.cpp 
+src/Buffer.cpp 
+src/Channel.cpp
+src/Connection.cpp
+src/Epoll.cpp
+src/EventLoop.cpp 
+src/Server.cpp 
+src/Socket.cpp 
+src/InetAddress.cpp
+src/ThreadPool.cpp 
+src/util.cpp
+)
+
+
+target_link_libraries(server -pthread)
+
+
