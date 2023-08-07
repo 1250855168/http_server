@@ -1,28 +1,34 @@
 cmake_minimum_required(VERSION 3.0.0)
-
 project(ftp)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(CMAKE_CXX_STANDARD 14)
 
 include_directories(./include)
 
-add_executable(server server.cpp 
-src/Acceptor.cpp 
-src/Buffer.cpp 
-src/Channel.cpp
-src/Connection.cpp
-src/Epoll.cpp
-src/EventLoop.cpp 
-src/Server.cpp 
-src/Socket.cpp 
-src/InetAddress.cpp
-src/ThreadPool.cpp 
-src/util.cpp
-src/Http_request.cpp)
+# 查找 Boost 库和 Boost.Log 库
+find_package(Boost REQUIRED COMPONENTS log)
 
+add_executable(server
+    server.cpp
+    src/Acceptor.cpp
+    src/Buffer.cpp
+    src/Channel.cpp
+    src/Connection.cpp
+    src/Epoll.cpp
+    src/EventLoop.cpp
+    src/Server.cpp
+    src/Socket.cpp
+    src/InetAddress.cpp
+    src/ThreadPool.cpp
+    src/util.cpp
+    src/Http_request.cpp
+    src/Logger.cpp
+   
+)
 
-target_link_libraries(server -pthread)
+# 设置链接库目录
+link_directories(/usr/lib/x86_64-linux-gnu)
 
-
+# 链接 Boost.Log 库和 pthread 库
+target_link_libraries(server Boost::log pthread)
