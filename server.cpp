@@ -11,19 +11,18 @@ int main() {
   logger.setLogFile(LOG_INFO, "info.log");
   logger.setLogLevel(LOG_INFO);
 
-  for (int i = 0; i < 1000; ++i) {
-    logger.log(LOG_INFO, "This is an info message");
-  }
-
-  logger.flush();
-
+  logger.log(LOG_INFO, "EventLoop create~");
   EventLoop *loop = new EventLoop();
 
+  logger.log(LOG_INFO, "Server create~");
   Server *server = Server::getInstance(loop);
 
+  logger.log(LOG_INFO, "loop run ~~~");
   loop->loop();
 
   Server::destoryInstance();
+
+  logger.destoryInstance();
 
   return 0;
 }

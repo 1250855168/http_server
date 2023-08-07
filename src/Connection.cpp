@@ -20,6 +20,7 @@
 #include <string>
 
 #include "Http_request.h"
+#include "Logger.h"
 
 Connection::Connection(EventLoop *_loop, Socket *_sock)
     : loop(_loop), sock(_sock), channel(nullptr), inBuffer(new std::string()),
@@ -44,6 +45,7 @@ void Connection::setDeleteConnectionCallback(std::function<void(int)> _cb) {
 }
 
 void Connection::echo(int sockfd) {
+  Logger &logger = Logger::getInstance();
   char buf[1024]; // 这个buf大小无所谓
   while (
       true) { // 由于使用非阻塞IO，读取客户端buffer，一次读取buf大小数据，直到全部读取完毕
@@ -58,7 +60,9 @@ void Connection::echo(int sockfd) {
                ((errno == EAGAIN) ||
                 (errno ==
                  EWOULDBLOCK))) { // 非阻塞IO，这个条件表示数据全部读取完毕
-      printf("message from client fd %d: %s\n", sockfd, readBuffer->c_str());
+      std::sprintf(buf, "message from client fd %d: ", sockfd);
+      logger.log(LOG_INFO, buf);
+      logger.log(LOG_INFO, readBuffer->c_str());
       // errif(write(sockfd, readBuffer->c_str(), readBuffer->size()) == -1,
       // "socket write error");
       send(sockfd);
@@ -72,9 +76,11 @@ void Connection::echo(int sockfd) {
       // 读取数据时出现了错误
       std::error_code ec = std::error_code(errno, std::system_category());
       if (ec == std::errc::bad_file_descriptor) {
-           break;
+        logger.log(LOG_INFO, "bad_file_descriptor");
+        break;
       } else {
         std::cerr << "Error reading data: " << ec.message() << std::endl;
+        logger.log(LOG_INFO, "Error reading data:");
       }
     }
   }
