@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 
-Channel::Channel(EventLoop *_loop, int _fd) 
+Channel::Channel(std::shared_ptr<EventLoop> _loop, int _fd) 
     : loop(_loop), fd(_fd), events(0), ready(0), inEpoll(false), useThreadPool(true){}
 
 Channel::~Channel(){

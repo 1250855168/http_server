@@ -16,7 +16,7 @@
 std::mutex Server::mutex;
 Server *Server::instance = nullptr;
 
-Server::Server(EventLoop *_loop) : loop(_loop), acceptor(nullptr) {
+Server::Server(std::shared_ptr<EventLoop>_loop) : loop(_loop), acceptor(nullptr) {
   acceptor = new Acceptor(loop);
   std::function<void(Socket *)> cb =
       std::bind(&Server::newConnection, this, std::placeholders::_1);

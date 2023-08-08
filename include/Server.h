@@ -16,15 +16,15 @@ class Connection;
 class Server {
 private:
   static Server *instance;
-  EventLoop *loop;
+  std::shared_ptr<EventLoop> loop;
   Acceptor *acceptor;
   std::map<int, std::shared_ptr<Connection>> connections;
-  Server(EventLoop *);
+  Server(std::shared_ptr<EventLoop>);
   ~Server();
   static std::mutex mutex;
 
 public:
-  static Server *getInstance(EventLoop *loop) {
+  static Server *getServerInstance(std::shared_ptr<EventLoop> loop) {
     std::lock_guard<std::mutex> lock(mutex);
     if (!instance) {
       instance = new Server(loop);
@@ -32,8 +32,9 @@ public:
     return instance;
   }
 
-  static void destoryInstance() {
-    if (!instance) {
+  static void destroyInstance() {
+    std::lock_guard<std::mutex> lock(mutex);
+    if (instance) {
       delete instance;
       instance = nullptr;
     }

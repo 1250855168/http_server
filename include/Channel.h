@@ -6,12 +6,13 @@
 ******************************/
 #pragma once
 #include <functional>
+#include <memory>
 class Socket;
 class EventLoop;
 class Channel
 {
 private:
-    EventLoop *loop;
+    std::shared_ptr<EventLoop> loop;
     int fd;
     uint32_t events;
     uint32_t ready;
@@ -20,7 +21,7 @@ private:
     std::function<void()> readCallback;
     std::function<void()> writeCallback;
 public:
-    Channel(EventLoop *_loop, int _fd);
+    Channel(std::shared_ptr<EventLoop>_loop, int _fd);
     ~Channel();
 
     void handleEvent();

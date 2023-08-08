@@ -11,7 +11,7 @@
 #include "Socket.h"
 #include <cstdio>
 
-Acceptor::Acceptor(EventLoop *_loop)
+Acceptor::Acceptor(std::shared_ptr<EventLoop>_loop)
     : loop(_loop), sock(nullptr), acceptChannel(nullptr) {
   sock = new Socket();
   int flag = 1;

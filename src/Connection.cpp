@@ -16,13 +16,14 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <string>
 
 #include "Http_request.h"
 #include "Logger.h"
 
-Connection::Connection(EventLoop *_loop, Socket *_sock)
+Connection::Connection(std::shared_ptr<EventLoop> _loop, Socket *_sock)
     : loop(_loop), sock(_sock), channel(nullptr), inBuffer(new std::string()),
       readBuffer(nullptr) {
   channel = new Channel(loop, sock->getFd());
@@ -31,13 +32,13 @@ Connection::Connection(EventLoop *_loop, Socket *_sock)
   std::function<void()> cb = std::bind(&Connection::echo, this, sock->getFd());
   channel->setReadCallback(cb);
   channel->setUseThreadPool(true);
-  readBuffer = new Buffer();
+  readBuffer = std::make_shared<Buffer>();
 }
 
 Connection::~Connection() {
   delete channel;
   delete sock;
-  delete readBuffer;
+  // delete readBuffer;
 }
 
 void Connection::setDeleteConnectionCallback(std::function<void(int)> _cb) {
