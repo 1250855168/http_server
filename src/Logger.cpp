@@ -13,7 +13,7 @@ void Logger::setLogFile(LogLevel level, const std::string &filename) {
     throw std::runtime_error("Invalid log level!");
   }
 
-  logFiles[index].open(filename, std::ios::app);
+  logFiles[index].open(filename, std::ios::app);//std::ios::app 是文件打开模式，表示以追加方式打开文件，即将新的日志消息追加到文件末尾
   if (!logFiles[index].is_open()) {
     throw std::runtime_error("Unable to open log file: " + filename);
   }
@@ -34,7 +34,7 @@ void Logger::log(LogLevel level, const std::string &message) {
   std::lock_guard<std::mutex> lock(queueMutex);
   pendingLogs.push_back(logMsg);
 
-  if (pendingLogs.size() >= 10) {
+  if (pendingLogs.size() >= 10) { //写出的频率
     writeToFileBatch();
   }
 }
