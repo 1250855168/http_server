@@ -22,7 +22,7 @@ int main() {
   logger.log(LOG_INFO, "loop run ~~~");
   loop->loop();
 
-  // Server::destoryInstance();
+  Server::destoryInstance();
 
   logger.destoryInstance();
 

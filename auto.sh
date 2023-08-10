@@ -16,9 +16,9 @@ is_server_port_reachable() {
   # 使用nc命令检查端口连通性，超时时间设置为2秒
   nc -z -w 2 "$server_ip" "$server_port" > /dev/null 2>&1
   if [ $? -eq 0 ]; then
-    return 0
-  else
     return 1
+  else
+    return 0
   fi
 }
 
