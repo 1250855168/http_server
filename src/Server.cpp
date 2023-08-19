@@ -1,9 +1,4 @@
-/******************************
- *   author: yuesong-feng
- *
- *
- *
- ******************************/
+
 #include "Server.h"
 #include "Acceptor.h"
 #include "Connection.h"

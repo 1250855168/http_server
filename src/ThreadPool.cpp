@@ -1,9 +1,4 @@
-/******************************
-*   author: yuesong-feng
-*   
-*
-*
-******************************/
+
 #include "ThreadPool.h"
 
 ThreadPool::ThreadPool(int size) : stop(false){

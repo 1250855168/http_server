@@ -16,13 +16,12 @@ int main() {
   std::shared_ptr<EventLoop> loop = std::make_shared<EventLoop>();
 
   logger.log(LOG_INFO, "Server create~");
-   Server *server = Server::getServerInstance(loop);
-  //Server *server = new Server(loop);
+  Server *server = Server::getServerInstance(loop);
 
   logger.log(LOG_INFO, "loop run ~~~");
   loop->loop();
 
-  Server::destoryInstance();
+  Server::destroyInstance();
 
   logger.destoryInstance();
 
