@@ -1,5 +1,7 @@
 
 #include "Http_request.h"
+#include <Database.h>
+#include <string>
 
 void send_error(int cfd, int status, char *title, char *text) {
   char buf[4096] = {0};
@@ -31,38 +33,56 @@ void http_request(const char *request, int cfd) {
   sscanf(request, "%[^ ] %[^ ] %[^ ]", method, path, protocol);
   printf("method = %s, path = %s, protocol = %s\n", method, path, protocol);
 
-  // 转码 将不能识别的中文乱码 -> 中文
-  // 解码 %23 %34 %5f
-  decode_str(path, path);
+  sockaddr_in clientAddr;
+  socklen_t addrLen = sizeof(clientAddr);
 
-  char *file = path + 1; // 去掉path中的/ 获取访问文件名
+  // 获取客户端地址信息
+  int result =
+      getpeername(cfd, reinterpret_cast<sockaddr *>(&clientAddr), &addrLen);
+  if (result == 0) {
+    // 将网络字节序的IP地址转换为字符串格式
+    char ipBuffer[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(clientAddr.sin_addr), ipBuffer, INET_ADDRSTRLEN);
+    std::string clientIP(ipBuffer);
 
-  // 如果没有指定访问的资源, 默认显示资源目录中的内容
-  if (strcmp(path, "/") == 0) {
-    // file的值, 资源目录的当前位置
-    file = (char *)"./";
-  }
+    std::string filename = "requests.db";
+    Database &db = Database::getInstance(filename); //配置这个数据库句柄
 
-  // 获取文件属性
-  struct stat st;
-  int ret = stat(file, &st);
-  if (ret == -1) {
-    send_error(cfd, 404, (char *)"Not Found",
-               (char *)"NO such file or direntry");
-    return;
-  }
+    db.insertRequest(method, clientIP);
 
-  // 判断是目录还是文件
-  if (S_ISDIR(st.st_mode)) { // 目录
-    // 发送头信息
-    send_respond_head(cfd, 200, "OK", get_file_type(".html"), -1);
-    // 发送目录信息
-    send_dir(cfd, file);
-  } else if (S_ISREG(st.st_mode)) { // 文件
-    // 发送消息报头
-    send_respond_head(cfd, 200, "OK", get_file_type(file), st.st_size);
-    // 发送文件内容
-    send_file(cfd, file);
+    // 转码 将不能识别的中文乱码 -> 中文
+    // 解码 %23 %34 %5f
+    decode_str(path, path);
+
+    char *file = path + 1; // 去掉path中的/ 获取访问文件名
+
+    // 如果没有指定访问的资源, 默认显示资源目录中的内容
+    if (strcmp(path, "/") == 0) {
+      // file的值, 资源目录的当前位置
+      file = (char *)"./";
+    }
+
+    // 获取文件属性
+    struct stat st;
+    int ret = stat(file, &st);
+    if (ret == -1) {
+      send_error(cfd, 404, (char *)"Not Found",
+                 (char *)"NO such file or direntry");
+      return;
+    }
+
+    // 判断是目录还是文件
+    if (S_ISDIR(st.st_mode)) { // 目录
+      // 发送头信息
+      send_respond_head(cfd, 200, "OK", get_file_type(".html"), -1);
+      // 发送目录信息
+      send_dir(cfd, file);
+    } else if (S_ISREG(st.st_mode)) { // 文件
+      // 发送消息报头
+      send_respond_head(cfd, 200, "OK", get_file_type(file), st.st_size);
+      // 发送文件内容
+      send_file(cfd, file);
+    }
   }
 }
 

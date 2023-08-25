@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(ftp)
+project(http_server)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 14)
 
 include_directories(./include)
-
 
 add_executable(server
     server.cpp
@@ -25,8 +24,5 @@ add_executable(server
    
 )
 
-# 设置链接库目录
-link_directories(/usr/lib/x86_64-linux-gnu)
-
-# 链接 Boost.Log 库和 pthread 库
-target_link_libraries(server  pthread)
+# 链接 sqlite3 库和 pthread 库
+target_link_libraries(server  pthread  sqlite3)

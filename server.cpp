@@ -1,11 +1,16 @@
 #include "Server.h"
 #include "EventLoop.h"
 #include "Logger.h"
+#include <Database.h>
 #include <memory>
 
 int terminate = 0;
 
 int main() {
+
+  std::string filename = "requests.db";
+  
+  Database& db = Database::getInstance(filename);
 
   Logger &logger = Logger::getInstance();
 
